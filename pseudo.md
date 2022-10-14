@@ -5,7 +5,7 @@ PCR duplicates can create bias in data, from factors such as GC content and inse
 
 The goal of Deduper is to remove PCR duplicates from SAM files after alignment of sequencing data to the reference genome or transcriptome. Using the SAM columns for chromosome, position, and strand (RNAME, POS, FLAG, respectively) we would be able to observe the alignment position of the reads to start identifying the duplicates. The next step would be to use the CIGAR string to identify soft clipping, an indication of whether the ends of the read are slightly changed or not.   
 
-UMIs group all PCR duplicates together. Each starting strand in PCR has its own UMI, or at least should. The UMI should match the first portion of the sequencing read, and as sequencing goes on, the UMIs will be the first to degrade. Assuming no errors in UMI attachment, duplication, or sequencing, reads that are tagged by different UMIs but have the same sequence are thus not PCR duplicates, but instead biological duplicates. If there are UMI errors, those could be corrected by observing UMI read abundance and trying to match them based on similarity. 
+UMIs group all PCR duplicates together. Each starting strand in PCR has its own UMI, or at least should. The UMI should match the first portion of the sequencing read, and as sequencing goes on, the UMIs will be the first to degrade. Assuming no errors in UMI attachment, duplication, or sequencing, reads that are tagged by different UMIs but have the same sequence are thsus not PCR duplicates, but instead biological duplicates. If there are UMI errors, those could be corrected by observing UMI read abundance and trying to match them based on similarity. 
 
 ## Example SAM files
 to sort by chromosome and read position  
