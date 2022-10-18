@@ -1,0 +1,3 @@
+to start with the samfile, it'll already be sorted by chromosome and position by
+samtools sort. So we still need to parse the flag for whether it's a +/- strand.
+we'll be checking bit 16, 0 is plus, 1 is minus strand. 
