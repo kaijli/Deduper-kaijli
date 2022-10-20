@@ -20,7 +20,7 @@ output_name = args.outputfile
 umi_name = args.umi
 
 # test files
-input_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/sorted_test.sam"
+input_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/test.sam"
 umi_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/STL96.txt"
 output_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/test_out.sam"
 
@@ -42,20 +42,21 @@ def soft_clip(cigar: str, fwd: bool, pos: int) -> int:
     Looks for front and end softclipping in CIGAR string using 'S'.
     Determines which clipping value to subtract from starting position based on strand.
     '''
-    front_clip = 0
-    end_clip = 0
-    f = re.search(r'(^\d+)S', cigar)
-    e = re.search(r'(\d+)S$', cigar)
-    if isinstance(f.group(0), int):
-        front_clip = f.group(0)
-
-    if isinstance(e.group(0), int):
-        end_clip = e.group(0)
+    front, end = 0,0
+    f = re.search(r'(^\d{1,2,3})?S', cigar)
+    e = re.search(r'(\d+)?S$', cigar)
+    print(f"{f=}\t{type(f)=}\t{e=}\t{type(e)=}")
+    print(f"{cigar=}\t{pos=}")
+    if f:
+        front = f.group(1)
+    if e:
+        end = e.group(1)
     
     if fwd:
-        pos = pos - int(front_clip)
-    elif not fwd and isinstance(end_clip, int):
-        pos = pos - int(end_clip)
+        pos = pos - int(front)       
+    else:
+        pos = pos - int(end)
+    print(f"{pos=}")
     return pos
 
 
@@ -68,32 +69,27 @@ with open(umi_name, "r") as fh:
 
 with open(output_name, "w") as fw:
     with open(input_name, "r") as fr:
-        header = list()
-        # entries = list()
         entries = dict()
-        # qname,flag,rname,pos,mapq,cigar,rnext,pnext,tlen,seq,qual = "","","","","","","","","","",""
         for line in fr:
             line = line.strip()
             if line[0] == "@":
                 fw.write(f"{line}\n")
             else:
-                # (qname,flag,chr,pos,mapq,cigar,rnext,pnext,tlen,seq,qual)=line.split("\t",11)
                 record = line.split()
                 qname = record[0]
                 flag = int(record[1])
                 chrom = record[2]
                 pos = int(record[3])
                 cigar = record[5]
-                u = re.search(r'([A-Z]+)$', qname)         # technically don't need the : in front of capturing group, but just in case
+                u = re.search(r'([A-Z]+)$', qname)         
                 umi = u.group(0)
-                print(umi)
                 if umi in umi_set:
                     fwd = check_strand(flag)
                     start = soft_clip(cigar, fwd, pos)
-                    identifier = (umi,fwd,start)
+                    identifier = (umi,fwd)
                     if identifier in entries.keys():
-                        entries[(umi,fwd,start)] +=1
+                        entries[identifier] +=1
                     else:
-                        entries[(umi,fwd,start)] = 1
+                        entries[identifier] = 1
                         fw.write(f"{line}\n")
-                        print("written")
+print("finished")
