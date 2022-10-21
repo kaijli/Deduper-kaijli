@@ -36,27 +36,28 @@ def check_strand(flag: int) -> bool:
         fwd = False         # 16th bit is flipped, 1
     return fwd
 
-def soft_clip(cigar: str, fwd: bool, pos: int) -> int:
+
+
+def cigar_parse(cigar: str, fwd: bool, pos: int) -> int:
     '''
     Takes CIGAR string, which strand the read is on, and the left-most starting position.
     Looks for front and end softclipping in CIGAR string using 'S'.
+    Looks for deletions from reference, skipped regions fromreference, and alignment matches using D,N,M.
     Determines which clipping value to subtract from starting position based on strand.
+    Using regex, 'findall' collects list of string numbers for each CIGAR variable. 
+    Turn string numbers into integers using map().
+    Uses sum of lists to modify 5' starting position of reads. 
     '''
-    front, end = 0,0
-    f = re.search(r'(^\d{1,2,3})?S', cigar)
-    e = re.search(r'(\d+)?S$', cigar)
-    print(f"{f=}\t{type(f)=}\t{e=}\t{type(e)=}")
-    print(f"{cigar=}\t{pos=}")
-    if f:
-        front = f.group(1)
-    if e:
-        end = e.group(1)
-    
     if fwd:
-        pos = pos - int(front)       
-    else:
-        pos = pos - int(end)
-    print(f"{pos=}")
+        front = sum(list(map(int,re.findall(r'^(\d+)S', cigar))))  
+        pos = pos - front     
+    else:                                                            # reverse strand
+        end = sum(list(map(int,re.findall(r'(\d+)S$', cigar))))  
+        deletion = sum(list(map(int,re.findall(r'(\d+)D', cigar)))) 
+        skip = sum(list(map(int,re.findall(r'(\d+)N', cigar)))) 
+        match = sum(list(map(int,re.findall(r'(\d+)M', cigar)))) 
+        pos = pos + end + deletion + skip + match
+    # print(f"{pos=}")
     return pos
 
 
@@ -81,11 +82,11 @@ with open(output_name, "w") as fw:
                 chrom = record[2]
                 pos = int(record[3])
                 cigar = record[5]
-                u = re.search(r'([A-Z]+)$', qname)         
-                umi = u.group(0)
+                u = re.findall(r'([A-Z]+)$', qname)
+                umi = u[0]
                 if umi in umi_set:
                     fwd = check_strand(flag)
-                    start = soft_clip(cigar, fwd, pos)
+                    start = cigar_parse(cigar, fwd, pos)
                     identifier = (umi,fwd)
                     if identifier in entries.keys():
                         entries[identifier] +=1
