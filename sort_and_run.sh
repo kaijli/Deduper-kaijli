@@ -1,0 +1,37 @@
+#!/bin/bash
+#SBATCH --partition=bgmp            ### Partition (like a queue in PBS)
+#SBATCH --job-name=sorting        ### Job Name
+#SBATCH --output=output/sort_%j.out        ### File in which to store job output
+#SBATCH --error=output/sort_%j.err         ### File in which to store job error messages
+#SBATCH --time=0-01:00:00           ### Wall clock time limit in Days-HH:MM:SS
+#SBATCH --nodes=1                   ### Number of nodes needed for the job
+#SBATCH --ntasks-per-node=1         ### Number of tasks to be launched per Node
+#SBATCH --account=bgmp              ### Account used for job submission
+#SBATCH --cpus-per-task=8
+
+# takes sam file name and run number to keep track of files for each run
+sam_in=$1
+runnum=$2
+
+#enter environment with samtools
+conda activate bgmp_py310
+conda install star -c bioconda
+STAR --version
+conda install samtools -c bioconda
+samtools --version
+#outputs sorted bam file
+
+# copy input file as to not overwrite
+cp $sam_in file${runnum}.sam
+# sort sam file
+/usr/bin/time -v samtools sort file${runnum}.sam -o file_sorted${runnum}.sam 
+
+echo "finished sorting"
+
+# clean up directory
+rm file${runnum}.sam 
+echo "removed temp file"
+
+/usr/bin/time -v python li_deduper.py -f file_sorted${runnum}.sam -o file_deduped${runnum}.sam 
+echo "deduped"
+exit

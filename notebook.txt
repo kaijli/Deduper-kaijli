@@ -1,3 +1,37 @@
+interactive session
+srun --account=bgmp --partition=bgmp --nodes=1 --ntasks-per-node=1 --time=1:00:00 --cpus-per-task=1 --pty bash
+
+
 to start with the samfile, it'll already be sorted by chromosome and position by
 samtools sort. So we still need to parse the flag for whether it's a +/- strand.
 we'll be checking bit 16, 0 is plus, 1 is minus strand. 
+
+10/20/2022
+figured out how to parse cigar string by using re.findall,
+which returns a list of strings and is more useful than the group
+that re.match or re.search returns. 
+
+test data location that is longer than our 100 line file in 
+/projects/bgmp/shared/deduper
+    (base) [kli8@talapas-ln1 ~]$ cd /projects/bgmp/shared/deduper/
+    (base) [kli8@talapas-ln1 deduper]$ ls
+    C1_PE_uniqAligned.sam  Dataset1.sam.gz  header.sam.gz
+    C1_SE_uniqAlign.sam    Dataset2.sam.gz  paired_end.sam
+    Dataset1.sam           Dataset3.sam.gz  test.sam
+
+$ wc Dataset1.sam
+  13885  281785 4194304 Dataset1.sam
+no header on this file, or on other 'Dataset' files. 
+using C1_PE...
+
+using interactive session to test on this file in talapas. 
+$ /usr/bipn/time -v python li_deduper.py -f /projects/bgmp/hared/deduper/C1_PE_uniqAligned.sam  -o ./c1_pe_test_out.sam
+
+10/27/2022
+Ran sam sort 
+$ sbatch process_sam.sh /projects/bgmp/shared/deduper/C1_PE_uniqAligned.sam 2
+run time:  1:09.78
+running deduper on sorted file. using a second bash script. 
+run time:  2:08.60
+WC after sort:  36867919   553018060 10246747355
+WC after dedupe: 257 :/ that's a lot less. 

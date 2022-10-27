@@ -20,9 +20,13 @@ output_name = args.outputfile
 umi_name = args.umi
 
 # test files
-input_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/test.sam"
-umi_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/STL96.txt"
-output_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/test_out.sam"
+# input_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/test.sam"
+umi_name = "STL96.txt"
+# output_name = "/Users/kaitlynli/Documents/UFO/bioinformatics/Bi624/Deduper-kaijli/test_out.sam"
+# input_name = "/projects/bgmp/shared/deduper/Dataset1.sam"
+
+
+print("Files imported.")
 
 def check_strand(flag: int) -> bool:
     '''
@@ -66,7 +70,7 @@ umi_set = set()
 with open(umi_name, "r") as fh:
     for line in fh:
         line = line.strip()
-        umi_set.add(line)
+print("UMIs extracted")
 
 with open(output_name, "w") as fw:
     with open(input_name, "r") as fr:
