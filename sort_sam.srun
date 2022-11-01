@@ -12,7 +12,9 @@
 # takes sam file name and run number to keep track of files for each run
 sam_in=$1
 runnum=$2
+dir="/projects/bgmp/kli8/bioinformatics/Bi624/Deduper-kaijli"
 
+cd $dir
 #enter environment with samtools
 conda activate bgmp_py310
 conda install star -c bioconda
@@ -22,16 +24,14 @@ samtools --version
 #outputs sorted bam file
 
 # copy input file as to not overwrite
-cp $sam_in file${runnum}.sam
+cp $sam_in ./file${runnum}.sam
 # sort sam file
-/usr/bin/time -v samtools sort file${runnum}.sam -o file_sorted${runnum}.sam 
+/usr/bin/time -v samtools sort file${runnum}.sam -o testfiles/file_sorted${runnum}.sam 
 
 echo "finished sorting"
 
 # clean up directory
-rm file${runnum}.sam 
+rm $dir/file${runnum}.sam 
 echo "removed temp file"
 
-/usr/bin/time -v python li_deduper.py -f file_sorted${runnum}.sam -o file_deduped${runnum}.sam 
-echo "deduped"
 exit

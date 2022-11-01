@@ -11,11 +11,13 @@
 
 sam_in=$1
 runnum=$2
+dir="/projects/bgmp/kli8/bioinformatics/Bi624/Deduper-kaijli"
 
+cd $dir
 #enter environment 
 conda activate bgmp_py310
 python --version 
 #run python code
-/usr/bin/time -v python li_deduper.py -f ${sam_in} -o file_deduped${runnum}.sam 
+/usr/bin/time -v python li_deduper.py -f testfiles/${sam_in} -o testfiles/file_deduped${runnum}.sam 
 echo "deduped"
 exit

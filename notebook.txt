@@ -35,3 +35,45 @@ running deduper on sorted file. using a second bash script.
 run time:  2:08.60
 WC after sort:  36867919   553018060 10246747355
 WC after dedupe: 257 :/ that's a lot less. 
+
+11/01/2022
+using file /projects/bgmp/shared/deduper/C1_SE_uniqAlign.sam
+from assignment submission page 
+running sort script first, job 22699063
+should take around 2 minutes
+seemed to have trouble removing the file copied to preserve original data file. 
+
+ensuring directories are the right one. 
+took 36 seconds for samtools to sort
+
+moving on to running through deduper with file_sorted4.sam
+job # 22699412
+time 0:52.93
+
+i realized that while i was opening the umi file, i wasn't reading and recording into python
+new job 22699485, time 2:04.31
+forgot to account for chromosome in unique read identifiers, rerunning. job 22699545
+
+rerunning to count for numbers requested below:
+$ sbatch run_deduper.srun file_sorted4.sam 5
+Submitted batch job 22699576
+time 2:11.71, 
+
+remember to run counts in interactive node!
+
+# header lines        
+$ grep -c "^@" file_deduped5.sam 
+65
+
+# uniq reads
+$ grep -v "^@" file_deduped5.sam | wc -l
+13701966
+
+# wrong UMIs
+0
+# dups removed
+4484444
+
+Uniq reads per chrom
+
+Maximum resident set size (kbytes): 3161624
