@@ -23,6 +23,18 @@ umi_name = args.umi
 
 print("Files imported.")
 
+def check_strand(flag: int) -> bool:
+    '''
+    Takes a flag integer from sam file and determines whether 16th bit is flipped.
+    If 16th bit is flipped (1), then it's the reverse strand.
+    If 16th bit is not flipped (0), then it's the forward strand. 
+    '''
+    if (flag & 16) != 16:   # check if 16th bit is flipped
+        fwd = True          # 16th bit is not flipped, 0
+    else:
+        fwd = False         # 16th bit is flipped, 1
+    return fwd
+
 def cigar_parse(flag: int, cigar: str, pos: int) -> int:
     '''
     Takes a flag integer from sam file and determines whether 16th bit is flipped.
@@ -42,10 +54,8 @@ def cigar_parse(flag: int, cigar: str, pos: int) -> int:
         pos = pos - front     
     else:                                                           # reverse strand
         end = sum(list(map(int,re.findall(r'(\d+)S$', cigar))))  
-        deletion = sum(list(map(int,re.findall(r'(\d+)D', cigar)))) 
-        skip = sum(list(map(int,re.findall(r'(\d+)N', cigar)))) 
-        match = sum(list(map(int,re.findall(r'(\d+)M', cigar)))) 
-        pos = pos + end + deletion + skip + match
+        variance = sum(list(map(int,re.findall(r'(\d+)[DNM]', cigar))))     # checks for deletions, skils, and matches
+        pos = pos + end + variance
     return pos
 
 def count_uniq_chrom(chrom: str, uniq_chroms: dict) -> dict:
@@ -81,7 +91,7 @@ with open(output_name, "w") as fw:          #open file to write out deduped sam 
                     pos = int(record[3])
                     cigar = record[5]
                     start = cigar_parse(flag, cigar, pos)
-                    identifier = (umi,chrom,start)
+                    identifier = (umi,chrom,start, check_strand(flag))
                     if identifier in entries.keys():
                         removed += 1
                     else:

@@ -77,3 +77,22 @@ $ grep -v "^@" file_deduped5.sam | wc -l
 Uniq reads per chrom
 
 Maximum resident set size (kbytes): 3161624
+
+added strandedness into conditions for checking. 
+time 2:09.09
+# header lines        
+$ grep -c "^@" file_deduped5.sam 
+65
+
+# uniq reads
+$ grep -v "^@" file_deduped5.sam | wc -l
+13719048
+
+# wrong UMIs
+0
+# dups removed
+4,467,362
+
+Maximum resident set size: 3.38 GB
+
+shortened the number of lines, but didn't make it more efficient by much.
