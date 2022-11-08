@@ -35,12 +35,8 @@ def check_strand(flag: int) -> bool:
         fwd = False         # 16th bit is flipped, 1
     return fwd
 
-def cigar_parse(flag: int, cigar: str, pos: int) -> int:
+def cigar_parse(fwd_strand: bool, cigar: str, pos: int) -> int:
     '''
-    Takes a flag integer from sam file and determines whether 16th bit is flipped.
-    If 16th bit is flipped (1), then it's the reverse strand.
-    If 16th bit is not flipped (0), then it's the forward strand.
-
     Takes CIGAR string, which strand the read is on, and the left-most starting position.
     Looks for front and end softclipping in CIGAR string using 'S'.
     Looks for deletions from reference, skipped regions from reference, and alignment matches using D,N,M.
@@ -49,7 +45,7 @@ def cigar_parse(flag: int, cigar: str, pos: int) -> int:
     Turn string numbers into integers using map().
     Uses sum of lists to modify 5' starting position of reads. 
     '''
-    if (flag & 16) != 16:                                           # forward strand
+    if fwd_strand:                                           # forward strand
         front = sum(list(map(int,re.findall(r'^(\d+)S', cigar))))  
         pos = pos - front     
     else:                                                           # reverse strand
@@ -65,7 +61,7 @@ def count_uniq_chrom(chrom: str, uniq_chroms: dict) -> dict:
         uniq_chroms[chrom] = 1
     return uniq_chroms
 
-umi_set = set()
+umi_set,entries = set(),set()
 wrong_umi,removed = 0,0
 uniq_chroms = dict()
 with open(umi_name, "r") as fh:
@@ -76,10 +72,9 @@ print("UMIs extracted")
 
 with open(output_name, "w") as fw:          #open file to write out deduped sam file
     with open(input_name, "r") as fr:       #open file to read in sorted, aligned sam file
-        entries = dict()
         for line in fr:
             line = line.strip()
-            if line[0] == "@":
+            if line.startswith("@"):
                 fw.write(f"{line}\n")
             else:
                 record = line.split()
@@ -87,16 +82,17 @@ with open(output_name, "w") as fw:          #open file to write out deduped sam 
                 umi = re.findall(r'([A-Z]+)$', qname)[0]
                 if umi in umi_set:
                     flag = int(record[1])
+                    strand = check_strand(flag)
                     chrom = record[2]
                     pos = int(record[3])
                     cigar = record[5]
-                    start = cigar_parse(flag, cigar, pos)
-                    identifier = (umi,chrom,start, check_strand(flag))
-                    if identifier in entries.keys():
+                    start = cigar_parse(strand, cigar, pos)
+                    identifier = (umi,chrom,start,strand)
+                    if identifier in entries:
                         removed += 1
                     else:
                         uniq_chroms = count_uniq_chrom(chrom, uniq_chroms)
-                        entries[identifier] = 1
+                        entries.add(identifier)
                         fw.write(f"{line}\n")
                 else:
                     wrong_umi += 1
